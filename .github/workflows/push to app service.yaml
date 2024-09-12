@@ -26,6 +26,7 @@ jobs:
 
       # Build the data
       - name: Script
+        shell: pwsh
         run: |
           echo "Hello World " | out-file ./${{ secrets.AZURE_WEBAPP_PACKAGE_PATH }}/index.html  
 
