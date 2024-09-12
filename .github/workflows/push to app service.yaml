@@ -1,0 +1,45 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main  # Triggers the action on push to the 'main' branch
+  workflow_dispatch:  # Allows manually triggering the workflow
+
+env:
+  AZURE_WEBAPP_NAME: "myfancydancywebapp"  # Replace with your App Service name
+  AZURE_WEBAPP_PACKAGE_PATH: "webroot"  # Path to your subfolder (e.g., 'frontend' or 'api')
+  AZURE_APP_SERVICE: 'windows'  # Use 'linux' for a Linux-based App Service
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code from the repository
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v3
+
+      # Install prerequisites
+      - name: Install PowerShell
+        run: sudo apt-get install -y powershell
+
+      # Build the data
+      - name: Script
+        run: |
+          echo "Hello World " | out-file ./${{ secrets.AZURE_WEBAPP_PACKAGE_PATH }}/index.html  
+
+      # Archive the subfolder for deployment
+      - name: 'Zip Subfolder for Deployment'
+        run: |
+          cd ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          zip -r ../subfolder-deploy.zip .
+
+      # Deploy to Azure Web App using the zip file
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: './subfolder-deploy.zip'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
